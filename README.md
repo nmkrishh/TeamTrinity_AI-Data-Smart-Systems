@@ -80,17 +80,13 @@ ollama run qwen2.5-coder:3b
 
 (Then press Ctrl+C to stop after confirming it works.)
 
-### 4️⃣ Install Python Dependencies
 
-pip install -r requirements.txt
-
-
-### 5️⃣ Run Backend
+### 4️⃣ Run Backend
 
 python app.py
 
 
-### 6️⃣ Run Frontend
+### 5️⃣ Run Frontend
 Open `index.html` using Live Server or your preferred method.
 
 ---
