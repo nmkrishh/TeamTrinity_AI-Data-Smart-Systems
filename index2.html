@@ -9,15 +9,14 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
-    <style>        :root {
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">    <style>        :root {
             --bg-dark: #16120f;
-            --bg-light: #faf8f6;
-            --accent: #3a3330;
+            --bg-light: #f5f3f0;
+            --accent: #8b6f47;
             --glass-bg: rgba(255, 255, 255, 0.08);
-            --glass-bg-light: rgba(255, 255, 255, 0.8);
+            --glass-bg-light: rgba(245, 240, 234, 0.85);
             --glass-border: rgba(255, 255, 255, 0.15);
-            --glass-border-light: rgba(0, 0, 0, 0.08);
+            --glass-border-light: rgba(139, 111, 71, 0.2);
             --text: #f5f3f0;
             --text-light: #2a2520;
             --text-muted: rgba(255, 255, 255, 0.7);
@@ -52,11 +51,9 @@
             background: linear-gradient(135deg, #0f0b08 0%, #1a1612 50%, #12100e 100%);
             z-index: -1;
             opacity: 1;
-        }
-
-        body.light-mode .bg-gradient {
+        }        body.light-mode .bg-gradient {
             opacity: 1;
-            background: linear-gradient(135deg, #fdfbf9 0%, #faf8f6 50%, #f8f5f2 100%);
+            background: linear-gradient(135deg, #f5f3f0 0%, #ede8e2 50%, #e8e0d8 100%);
         }
 
         /* Glassmorphism Utility */
@@ -499,7 +496,7 @@
             min-width: 44px;
             height: 44px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #3a3330 0%, #2a2318 100%);
+            background: linear-gradient(135deg, #8b6f47 0%, #6b5233 100%);
             border: 1px solid rgba(255, 255, 255, 0.12);
             color: #f5f3f0;
             display: flex;
@@ -512,8 +509,8 @@
 
         .send-btn:hover {
             transform: scale(1.05);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-            background: linear-gradient(135deg, #4a423a 0%, #3a3228 100%);
+            box-shadow: 0 6px 20px rgba(139, 111, 71, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            background: linear-gradient(135deg, #9b7f57 0%, #7b6243 100%);
         }
 
         .send-btn:active {
@@ -966,10 +963,8 @@
         .markdown-content strong {
             font-weight: 600;
             color: var(--accent);
-        }
-
-        body.light-mode .markdown-content strong {
-            color: #3d6b34;
+        }        body.light-mode .markdown-content strong {
+            color: #8b6f47;
         }
 
         .file-badge {
@@ -1068,17 +1063,21 @@
     </div>
 
     <!-- Main App -->
-    <div id="app">
-        <!-- Header -->
+    <div id="app">        <!-- Header -->
         <header>
             <button class="icon-btn" onclick="toggleSidebar()">
                 <span class="material-icons">menu</span>
             </button>
             <div class="header-title">TRINITY AI</div>
-            <button class="icon-btn" onclick="toggleSettings()">
-                <span class="material-icons">settings</span>
-            </button>
-        </header>        <!-- Chat Area -->
+            <div style="display:flex; align-items:center; gap:0.25rem;">
+                <a href="index.html" class="icon-btn" title="Back to Home" style="text-decoration:none;">
+                    <span class="material-icons">home</span>
+                </a>
+                <button class="icon-btn" onclick="toggleSettings()">
+                    <span class="material-icons">settings</span>
+                </button>
+            </div>
+        </header><!-- Chat Area -->
         <div id="chat-container">
             <div class="empty-state"><div class="empty-state-title">TRINITY AI</div><div>How can I help you?</div></div>
         </div>
@@ -1142,21 +1141,32 @@
             
             recognition.onerror = () => stopRecording();
             recognition.onend = () => stopRecording();
-        }
-
-        // Splash Screen
+        }        // Splash Screen
         window.addEventListener('load', () => {
             setTimeout(() => {
                 splash.classList.add('fade-out');
                 setTimeout(() => splash.style.display = 'none', 500);
-            }, 3500);
+            }, 2500);
         });
 
-        // Initialize Theme
-        if (!settings.darkMode) {
-            document.body.classList.add('light-mode');
-            document.getElementById('dark-mode-toggle').classList.add('active');
+        // ── Theme: sync with index.html via shared localStorage key ──
+        const DARK_KEY = 'trinity-dark-mode';
+
+        function applyTheme(dark) {
+            if (dark) {
+                document.body.classList.remove('light-mode');
+                document.getElementById('dark-mode-toggle').classList.remove('active');
+            } else {
+                document.body.classList.add('light-mode');
+                document.getElementById('dark-mode-toggle').classList.add('active');
+            }
+            settings.darkMode = dark;
         }
+
+        // Read from shared key first, fall back to settings
+        const sharedDark = localStorage.getItem(DARK_KEY);
+        const startDark = sharedDark !== null ? sharedDark === 'true' : settings.darkMode;
+        applyTheme(startDark);
 
         // Chat Functions
         function generateId() {
@@ -1528,16 +1538,11 @@
             if (!sidebar.classList.contains('open')) {
                 overlay.classList.remove('active');
             }
-        }
-
-        function toggleDarkMode() {
-            settings.darkMode = !settings.darkMode;
-            document.getElementById('dark-mode-toggle').classList.toggle('active');
-            if (settings.darkMode) {
-                document.body.classList.remove('light-mode');
-            } else {
-                document.body.classList.add('light-mode');
-            }
+        }        function toggleDarkMode() {
+            const nowDark = !settings.darkMode;
+            applyTheme(nowDark);
+            // Persist to both keys so index.html stays in sync
+            localStorage.setItem(DARK_KEY, nowDark);
             localStorage.setItem('trinity_settings', JSON.stringify(settings));
         }
 

@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRINITY AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            font-size: 16px;
+        }
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #d8d8d8;
+            color: #000;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            transition: background-color 0.4s ease, color 0.4s ease;
+        }
+
+        body.dark-mode {
+            background-color: #16120f;
+            color: #f5f3f0;
+        }
+
+        /* Splash Screen */
+        #splash {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #d8d8d8;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+
+        body.dark-mode #splash { background: #16120f; }
+
+        #splash.fade-out {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .splash-title {
+            font-size: 2.8rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, #8b6f47 0%, #3a3330 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: splashFadeIn 0.8s ease forwards;
+        }
+
+        body.dark-mode .splash-title {
+            background: linear-gradient(135deg, #d4ccc5 0%, #8b6f47 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .loading-dots { display: flex; gap: 8px; }
+
+        .dot {
+            width: 10px; height: 10px;
+            background: #8b6f47;
+            border-radius: 50%;
+            animation: dotPulse 1.4s infinite ease-in-out;
+        }
+        .dot:nth-child(1) { animation-delay: 0s; }
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes splashFadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes dotPulse {
+            0%, 100% { opacity: 0.3; transform: scale(0.75); }
+            50%       { opacity: 1;   transform: scale(1); }
+        }
+        
+        /* Grain/Noise texture overlay */
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.18;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 50;
+            mix-blend-mode: multiply;
+        }        /* Background image - Creation of Adam style hands */
+        .hero-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image: url("Untitled.png");
+            background-size: cover;
+            background-position: center;
+            z-index: 1;
+            transition: opacity 0.4s ease;
+        }
+
+        body.dark-mode .hero-bg { opacity: 0.3; }
+
+        /* Layout Container */
+        .container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+          /* Glassmorphism Navigation */
+        .navbar {
+            margin-top: 20px;
+            padding: 16px 32px;
+            background: rgba(220, 220, 220, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            max-width: 1000px;
+            align-self: center;
+            width: 100%;
+            transition: background 0.4s ease, border 0.4s ease;
+        }
+
+        body.dark-mode .navbar {
+            background: rgba(22, 18, 15, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+        }
+          .logo {
+            font-weight: 900;
+            font-size: 18px;
+            letter-spacing: 0.5px;
+            color: #000;
+            text-transform: uppercase;
+            transition: color 0.4s ease;
+        }
+
+        body.dark-mode .logo { color: #f5f3f0; }
+        
+        .nav-links {
+            display: flex;
+            gap: 48px;
+            list-style: none;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+          .nav-links a {
+            text-decoration: none;
+            color: #222;
+            font-size: 16px;
+            font-weight: 500;
+            transition: opacity 0.2s, color 0.4s ease;
+        }
+
+        body.dark-mode .nav-links a { color: #f5f3f0; }
+        
+        .nav-links a:hover {
+            opacity: 0.7;
+        }        /* ── Professional Theme Toggle ─────────────────── */
+        .theme-toggle {
+            position: relative;
+            width: 64px;
+            height: 32px;
+            border-radius: 100px;
+            border: 1.5px solid rgba(0, 0, 0, 0.15);
+            background: linear-gradient(135deg, #e0d8ce, #ccc5bb);
+            cursor: pointer;
+            margin-right: 12px;
+            margin-left: 12px;
+            flex-shrink: 0;
+            transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.3s ease;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.12), 0 1px 3px rgba(255,255,255,0.6);
+        }
+
+        body.dark-mode .theme-toggle {
+            background: linear-gradient(135deg, #2a2016, #1a1410);
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: inset 0 1px 4px rgba(0,0,0,0.5), 0 0 12px rgba(139,111,71,0.2);
+        }
+
+        .theme-toggle:hover {
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.12), 0 0 0 3px rgba(139,111,71,0.2);
+        }
+
+        /* Sliding knob */
+        .theme-toggle::before {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #fff 0%, #f0ebe4 100%);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2), 0 1px 2px rgba(0,0,0,0.1);
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+                        background 0.4s ease, box-shadow 0.3s ease;
+        }
+
+        body.dark-mode .theme-toggle::before {
+            transform: translateX(32px);
+            background: linear-gradient(145deg, #f5e6d3 0%, #d4a870 100%);
+            box-shadow: 0 2px 8px rgba(139,111,71,0.5), 0 0 6px rgba(255,200,80,0.3);
+        }
+
+        /* Sun icon (light mode) */
+        .theme-toggle .toggle-icon-sun,
+        .theme-toggle .toggle-icon-moon {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            line-height: 1;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .theme-toggle .toggle-icon-sun  { right: 8px; opacity: 1; }
+        .theme-toggle .toggle-icon-moon { left: 8px;  opacity: 0; }
+
+        body.dark-mode .theme-toggle .toggle-icon-sun  { opacity: 0; }
+        body.dark-mode .theme-toggle .toggle-icon-moon { opacity: 1; }
+          .btn-try {
+            background: #000000c4;
+            color: #fff;
+            border: none;
+            padding: 10px 28px;
+            border-radius: 100px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-left: auto;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+            text-decoration: none;
+        }
+        
+        .btn-try:hover {
+            background: #f5e6d3;
+            color: #2a2a2a;
+            box-shadow: 0 4px 20px rgba(211, 169, 123, 0.25);
+            transform: translateY(-2px);
+        }
+        
+        .btn-try:active {
+            transform: translateY(0);
+        }
+        
+        /* Hero Content */
+        .hero {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding-top: 15px;
+            padding-bottom: 120px;
+        }
+          h1 {
+            font-size: 68px;
+            line-height: 1.05;
+            font-weight: 900;
+            margin-bottom: 20px;
+            letter-spacing: -2px;
+            color: #000;
+            transition: color 0.4s ease;
+        }
+
+        body.dark-mode h1 { color: #f5f3f0; }
+        
+        h1 span {
+            display: block;
+        }
+          .subtitle {
+            font-size: 16px;
+            line-height: 1.5;
+            color: #444;
+            max-width: 520px;
+            margin-bottom: auto;
+            font-weight: 400;
+            margin-top: 0;
+            transition: color 0.4s ease;
+        }
+
+        body.dark-mode .subtitle { color: rgba(245,243,240,0.65); }          .btn-started {
+            background: #000000c4;
+            color: #fff;
+            border: none;
+            padding: 22px 44px;
+            border-radius: 100px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 150px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-started:hover {
+            background: #f5e6d3;
+            color: #111;
+            box-shadow: 0 8px 32px rgba(211, 169, 123, 0.45);
+            transform: translateY(-3px);
+        }
+        
+        .btn-started:active {
+            transform: translateY(-1px);
+        }
+
+        body.dark-mode .btn-started {
+            background: #f5e6d3;
+            color: #111;
+        }
+        body.dark-mode .btn-try {
+            background: #f5e6d3;
+            color: #111;
+        }
+        
+`
+        body.dark-mode .btn-started:hover {
+            background: #fff;
+            box-shadow: 0 8px 32px rgba(255,255,255,0.3);
+        }
+        body.dark-mode .btn-try:hover {
+            background: #f5e6d3;
+            box-shadow: 0 8px 32px rgba(255,255,255,0.3);
+            color: #000000;
+        }
+        
+        @media (max-width: 768px) {
+            .navbar {
+                margin-top: 10px;
+                padding: 14px 24px;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            h1 {
+                font-size: 42px;
+                letter-spacing: -1px;
+            }
+            
+            .subtitle {
+                font-size: 16px;
+                max-width: 90%;
+            }
+            
+            .btn-started {
+                margin-top: 300px;
+                padding: 18px 36px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Splash Screen -->
+    <div id="splash">
+        <div class="splash-title">TRINITY AI</div>
+        <div class="loading-dots">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+    </div>
+
+    <div class="hero-bg"></div>
+    
+    <div class="container">
+        <nav class="navbar">
+            <div class="logo">TRINITY AI</div>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="#">About Us</a></li>
+                <li><a href="#">Contact Us</a></li>
+            </ul>
+            <button class="theme-toggle" id="theme-toggle" title="Toggle theme">
+                <span class="toggle-icon-moon">🌙</span>
+                <span class="toggle-icon-sun">☀️</span>
+            </button>
+            <a href="index2.html" class="btn-try">Try Now</a>
+        </nav>
+        
+        <main class="hero">
+            <h1>
+                <span>Bringing AI</span>
+                <span>To Every Village</span>
+            </h1>
+            <p class="subtitle">A smart learning assistant optimized for slow networks, offline resilience and real world accessiblity</p>
+            <a href="index2.html" class="btn-started">Get Started</a>
+        </main>
+    </div>
+    
+    <script>
+        // ── Splash Screen ──────────────────────────────
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('splash').classList.add('fade-out');
+            }, 2500);
+        });
+
+        // ── Dark / Light Mode (shared with index2.html) ──
+        const toggle = document.getElementById('theme-toggle');
+        const DARK_KEY = 'trinity-dark-mode';
+
+        const savedDark = localStorage.getItem(DARK_KEY);
+        const isDark = savedDark === 'true';        function applyTheme(dark) {
+            document.body.classList.toggle('dark-mode', dark);
+            // Don't overwrite innerHTML — CSS handles icon visibility via body.dark-mode
+        }
+
+        applyTheme(isDark);
+
+        toggle.addEventListener('click', () => {
+            const nowDark = !document.body.classList.contains('dark-mode');
+            localStorage.setItem(DARK_KEY, nowDark);
+            applyTheme(nowDark);
+        });
+    </script>
+</body>
+</html>
